@@ -1,0 +1,347 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{datetime2}
+\usepackage{xparse}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+
+ \geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=20mm,
+ top=20mm,
+ }
+ 
+ \usepackage{graphicx}
+ \usepackage{titling}
+
+ \title {Tugas 3 - Fuzzy Inference System 
+}
+
+\date{16 Maret 2026}
+ 
+ \usepackage{fancyhdr}
+\fancypagestyle{plain}{%  the preset of fancyhdr 
+    \fancyhf{} % clear all header and footer fields
+    \fancyfoot[R]{}
+    \fancyfoot[L]{}
+    \fancyhead[L]{\includegraphics[width=2cm]{ITS_pojok.pdf}}
+    \fancyhead[R]{ \DTMnow}
+}
+\makeatletter
+\def\@maketitle{%
+  \newpage
+  \null
+  \vskip 1em%
+  \begin{center}%
+  \let \footnote \thanks
+    {\LARGE \@title \par}%
+    \vskip 1em%
+    %{\large \@date}%
+  \end{center}%
+  \par
+  \vskip 1em}
+\makeatother
+
+\usepackage{lipsum}  
+% \usepackage{cmbright} % Change the font by zee
+
+% Pengaturan warna kode
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    frame=single
+}
+
+\begin{document}
+
+\maketitle
+
+\noindent\begin{tabular}{@{}ll}
+     Name &: Prayudhisti Basuki\\
+     NRP &: 6022251075\\
+     Teacher &: Muhammad Qomaruz Zaman, S.T., M.T., Ph.D.\\
+     Class Name &: Kecerdasan Buatan (X)\\
+     Github link &:  \href{https://github.com/kunthengx/tugas_kecerdasan_buatan/blob/c3d79eb01ee79165f0499d08e516e762eb2188eb/tugas3_fuzzy_inference.ipynb}{Tugas 3 - Fuzzy Inference System} \\
+\end{tabular}
+\vspace{0.75cm}
+
+\section*{Deskripsi Tugas}
+
+Rancang sebuah Fuzzy Inference System (FIS) untuk menentukan harga paket penjualan PV berdasarkan 
+
+\begin{itemize}
+    \item   Input 1 - Luasan Area PV : sedikit, sedang, banyak
+    \item   Input 2 - Daya yang dihasilkan : kecil, menengah, besar
+    \item   Output - Harga Paket: minimal 3 kelas (Basic, Premium, Platinum)
+\end{itemize}
+
+\setlength{\parindent}{0pt}
+\textbf{Persyaratan !} Wajib ada aturan, misal :
+\textbf{IF} PV sedikit \textbf{AND} Daya Besar \textbf{THEN} Paket = \textbf{Premium}\\
+\\
+Gunakan Model \textbf{Sugeno 0-Orde} (singleton output) dan \textbf{Defuzzyfikasi Weighted Average}
+\\
+
+\section*{PENYELESAIAN}
+\subsection*{Perancangan Fuzzy Inference System (Sugeno Orde-0)}
+Sistem ini bertujuan untuk menentukan harga paket berdasarkan dua input: \textbf{Luasan Area} dan \textbf{Daya}.
+\\
+\\
+\textbf{A. Fuzzifikasi (Variabel \& Himpunan)}\\
+Kita mendefinisikan semesta pembicaraan untuk setiap variabel:
+\begin{enumerate}
+    \item Input 1: \textbf{Luasan Area PV} (Skala 0-100 $m^2$)
+    \begin{itemize}
+        \item \textbf{Sedikit:} Kurva bahu kiri.
+        \item \textbf{Sedang:} Kurva segitiga.
+        \item \textbf{Banyak:} Kurva bahu kanan.
+    \end{itemize}
+
+    \item Input 2: \textbf{Daya yang Dihasilkan} (Skala 0-10 kWp)
+    \begin{itemize}
+        \item \textbf{Kecil:} Kurva bahu kiri.
+        \item \textbf{Menengah:} Kurva segitiga.
+        \item \textbf{Besar:} Kurva bahu kanan.
+    \end{itemize}
+
+    \item Output: \textbf{Harga Paket (Singleton)}
+    \begin{itemize}
+        \item \textbf{Basic:} 10 (Juta) Rupiah
+        \item \textbf{Premium:} 25 (Juta) Rupiah
+        \item \textbf{Platinum:} 45 (Juta) Rupiah
+    \end{itemize}
+\end{enumerate}
+
+\textbf{B. Kurva Keanggotaan Fuzzy Inference System (Sugeno Orde-0)}\\
+Dalam logika fuzzy, kurva himpunan keanggotaan ini sangat penting karena menentukan sejauh mana sebuah nilai input (seperti luas area) masuk ke dalam kategori tertentu (seperti "sedikit" atau "sedang"). \\
+
+\newpage
+Fungsi keanggotaa yang digunakan adalah segitiga (\textit{triangular membership function}) yang didefinisikan oleh tiga parameter (\textit{a, b, c}) dimana $a \leq b \leq c$ serta nilai-nilai parameternya (\textit{a, b, c, d, d, e}) ditunjukkan sebagaimana gambar dibawah berikut 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{triangle membership function.png}
+    %\caption{Fuzzyfikasi Suhu Ruangan}
+    \label{fig:enter-label}
+\end{figure}
+
+        triangle z : a,b,c,d,e = 
+        $\begin{cases}
+        d, & x < a \\
+        \frac{x - a}{b - a}, & a \leq x \leq b \\
+        \frac{c - x}{c - b}, & b \leq x \leq c \\
+        e, & x > c
+        \end{cases}$
+\\
+Berikut adalah penjelasan dan visualisasi dari himpunan fuzzy yang kita gunakan:\\
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\linewidth]{luas area.png}
+    \caption{Himpunan Fuzzy Luasan Area PV}
+    \label{fig:enter-label}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\linewidth]{daya pv.png}
+    \caption{Himpunan Fuzzy Daya PV yang Dihasilkan}
+    \label{fig:enter-label}
+\end{figure}
+
+\newpage
+\begin{enumerate}
+    \item Kurva Variabel Input (Luasan \& Daya)\\
+Untuk input, kita menggunakan kombinasi kurva Trapesium di bagian ujung (karena nilai ekstrim biasanya memiliki derajat keanggotaan penuh 1) dan kurva Segitiga di bagian tengah.
+
+\begin{itemize}
+    \item \textbf{Kurva Segitiga} Bahu Kanan dan Kiri : Digunakan untuk kategori "Sedikit" dan "Banyak". Area datar di atas menunjukkan bahwa pada rentang tertentu, nilai tersebut 100\% dianggap "sedikit" atau "banyak".
+    \item \textbf{Kurva Segitiga} : Digunakan untuk kategori "Sedang". Puncaknya menunjukkan nilai yang paling merepresentasikan kategori tersebut, sementara kemiringannya menunjukkan transisi ke kategori lain.
+\end{itemize}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\linewidth]{harga paket.png}
+    \caption{Himpunan Fuzzy Harga Paket (Singleton)}
+    \label{fig:enter-label}
+\end{figure}
+
+    \item Kurva Output (Singleton Sugeno)\\
+Pada model Sugeno Orde-0, output tidak berbentuk kurva lebar, melainkan berupa garis tunggal (Singleton) pada nilai konstanta tertentu.
+
+\begin{itemize}
+    \item \textbf{Basic:} Garis tegak lurus pada nilai 10.
+    \item \textbf{Premium:} Garis tegak lurus pada nilai 25.
+    \item \textbf{Platinum:} Garis tegak lurus pada nilai 45.
+\end{itemize}
+\end{enumerate}
+
+\begin{lstlisting}[caption=Menghitung FIS Sugeno, language=Python]
+def hitung_fis_sugeno(input_luas, input_daya):
+    # Fuzzifikasi Input 1: Luas (0 - 100 m2)
+    mu_luas = {
+        'sedikit': triangle(input_luas, 25, 25, 50, 1, 0 ),
+        'sedang' : triangle(input_luas, 25, 50, 75, 0, 0),
+        'banyak' : triangle(input_luas, 50, 75, 100, 0, 1)
+    }
+
+    # Fuzzifikasi Input 2: Daya (0 - 10 kWp)
+    mu_daya = {
+        'kecil'   : triangle(input_daya, 2, 2, 5, 1, 0),
+        'menengah': triangle(input_daya, 2, 5, 8, 0, 0),
+        'besar'   : triangle(input_daya, 5, 8, 10, 0, 1)    
+    }
+
+    # Output Sugeno Orde-0 (Singleton dalam Juta Rp)
+    Z = {'basic': 10, 'premium': 25, 'platinum': 45}
+
+    # Aturan Fuzzy (Total 9 Aturan)
+    # Format: (Luas, Daya, Output_Z)
+    rules = [
+        (mu_luas['sedikit'], mu_daya['kecil'],    Z['basic']),
+        (mu_luas['sedikit'], mu_daya['menengah'], Z['basic']),
+        (mu_luas['sedikit'], mu_daya['besar'],    Z['premium']),
+        (mu_luas['sedang'],  mu_daya['kecil'],    Z['basic']),
+        (mu_luas['sedang'],  mu_daya['menengah'], Z['premium']),
+        (mu_luas['sedang'],  mu_daya['besar'],    Z['platinum']),
+        (mu_luas['banyak'],  mu_daya['kecil'],    Z['premium']),
+        (mu_luas['banyak'],  mu_daya['menengah'], Z['platinum']),
+        (mu_luas['banyak'],  mu_daya['besar'],    Z['platinum'])
+    ]
+
+    # Inferensi & Defuzzifikasi (Weighted Average)
+    numerator = 0
+    denominator = 0
+
+    for i, (m1, m2, z_val) in enumerate(rules):
+        w = min(m1, m2)  # Operator AND (Mencari nilai minimum)
+        if w > 0:
+            numerator += w * z_val
+            denominator += w
+
+    if denominator == 0:
+        return 0
+
+    return numerator / denominator
+\end{lstlisting} \\
+
+\textbf{C. Aturan Fuzzy (Fuzzy Rules)}\\
+Sesuai permintaan di soal, kita akan membuat matriks aturan untuk output yang dihasilkan. Dalam model Sugeno Orde-0, setiap kombinasi input akan langsung diarahkan ke sebuah nilai konstanta (singleton) yang mewakili kelas harga. Berikut adalah langkah-langkah dan logika di balik penyusunan 9 aturan tersebut:
+
+\begin{enumerate}
+    \item \textbf{Matriks Keputusan (Fuzzy Grid)}\\
+    Untuk memastikan tidak ada skenario yang terlewat, kita membuat matriks 3x3 karena kita memiliki 3 kategori Luas dan 3 kategori Daya.
+
+    \item \textbf{Logika Pemilihan Paket}\\
+Dasar penetapan setiap aturan diatas adalah sebagai berikut:
+    \begin{itemize}
+        \item \textbf{Prioritas Daya} (Efisiensi): Meskipun lahan "Sedikit", jika panel yang dipasang memiliki teknologi "Daya Besar", maka biaya investasi naik ke \textbf{Premium}. Sebaliknya, jika daya "Kecil", meskipun lahan "Sedang", harga tetap \textbf{Basic} karena output energinya rendah.
+        \item \textbf{Skala Ekonomi} (Kapasitas): Ketika lahan "Banyak" dan daya "Besar" atau "Menengah", sistem secara otomatis dikategorikan sebagai \textbf{Platinum} karena melibatkan jumlah material dan instalasi yang masif.
+        \item \textbf{Titik Tengah} : Pertemuan antara Luas "Sedang" dan Daya "Menengah" adalah titik ideal untuk paket \textbf{Premium}.
+    \end{itemize}
+
+    \item \textbf{Penulisan Formal Aturan}\\
+Berdasarkan matriks di atas, berikut adalah 9 aturan yang dimasukkan ke dalam program:
+    \begin{enumerate}
+        \item \textbf{R1} : IF Luas Sedikit AND Daya Kecil THEN Paket = \textbf{Basic} (10)
+        \item \textbf{R2} : IF Luas Sedikit AND Daya Menengah THEN Paket = \textbf{Basic} (10)
+        \item \textbf{R3} : IF Luas Sedikit AND Daya Besar THEN Paket = \textbf{Premium} (25)
+        \item \textbf{R4} : IF Luas Sedang AND Daya Kecil THEN Paket = \textbf{Basic} (10)
+        \item \textbf{R5} : IF Luas Sedang AND Daya Menengah THEN Paket = \textbf{Premium} (25)
+        \item \textbf{R6} : IF Luas Sedang AND Daya Besar THEN Paket = \textbf{Platinum} (45)
+        \item \textbf{R7} : IF Luas Banyak AND Daya Kecil THEN Paket = \textbf{Premium} (25)
+        \item \textbf{R8} : IF Luas Banyak AND Daya Menengah THEN Paket = \textbf{Platinum} (45)
+        \item \textbf{R9} : IF Luas Banyak AND Daya Besar THEN Paket = \textbf{Platinum} (45)
+    \end{enumerate}
+
+\begin{table}[h!]
+\centering
+\caption{Matriks Aturan Fuzzy}
+\begin{tabular}{llll}
+\hline
+\textbf{Luasan / Daya} & \textbf{Kecil} & \textbf{Menengah} & \textbf{Besar}\\ \hline
+\textbf{Sedikit}    & Basic     & Basic     & Premium     \\
+\textbf{Sedang}     & Basic     & Premium   & Platinum     \\
+\textbf{Banyak}     & Basic     & Platinum  & \textbf{Platinum}    \\ \hline
+\end{tabular}
+\label{tab:dummy_table} % Add a label for referencing
+\end{table}
+    
+    \item \textbf{Proses Inferensi dalam Program}\\
+Dalam kode Python yang kita buat, hal ini dijalankan melalui fungsi min(): \\
+"Sistem melihat derajat keanggotaan input, mengambil nilai terkecil (AND) sebagai bobot (w), lalu mengalikan bobot tersebut dengan nilai paketnya."\\
+Misalnya, pada Luas yang "Agak Sedikit" ($0.6$) dan Daya "Sangat Besar" ($1.0$), maka aturan R3 akan aktif dengan kekuatan $0.6$, menarik harga ke arah 25 Juta.
+
+\end{enumerate}
+
+\begin{lstlisting}[caption=Membuat Rule Output, language=Python]
+# Output Sugeno Orde-0 (Singleton dalam Juta Rp)
+Z_print = {'basic': 10, 'premium': 25, 'platinum': 45}
+
+rules_print = [
+    (mu_luas_print['sedikit'], mu_daya_print['kecil'],    Z_print['basic']),
+    (mu_luas_print['sedikit'], mu_daya_print['menengah'], Z_print['basic']),
+    (mu_luas_print['sedikit'], mu_daya_print['besar'],    Z_print['premium']),
+    (mu_luas_print['sedang'],  mu_daya_print['kecil'],    Z_print['basic']),
+    (mu_luas_print['sedang'],  mu_daya_print['menengah'], Z_print['premium']),
+    (mu_luas_print['sedang'],  mu_daya_print['besar'],    Z_print['platinum']),
+    (mu_luas_print['banyak'],  mu_daya_print['kecil'],    Z_print['premium']),
+    (mu_luas_print['banyak'],  mu_daya_print['menengah'], Z_print['platinum']),
+    (mu_luas_print['banyak'],  mu_daya_print['besar'],    Z_print['platinum'])
+]
+
+for i, (m1, m2, z_val) in enumerate(rules_print):
+    w = min(m1, m2)  # Operator AND (Mencari nilai minimum)
+    if w > 0:
+        print(f" - R{i+1} aktif dengan bobot (w): {w:.2f}, Nilai Z: {z_val}")
+\end{lstlisting} \\
+
+\textbf{D. Defuzzifikasi}\\
+Karena memakai model Sugeno Orde-0, maka kita menggunakan \textbf{Weighted Average} : \\
+\[
+        Harga = \frac{\Sigma (w_{i} . z_{i})}{\Sigma w_{i}}
+\]
+
+Dimana $w_{i}$ adalah nilai keanggotaan (predikat) aturan ke-\textit{i}, dan $z_{i}$ adalah nilai konstanta output (singleton).
+
+\begin{lstlisting}[caption=Menampilkan Hasil Perhitungan, language=Python]
+# Get user input
+user_luas = float(input("Masukkan Luas PV : "))
+user_daya = float(input("Masukkan Daya PV : "))
+
+harga_akhir = hitung_fis_sugeno(user_luas, user_daya)
+
+print("-" * 30)
+print(f"HASIL PERHITUNGAN SIMULASI")
+print(f"Input Luas: {user_luas} m2 | Input Daya: {user_daya} kWp")
+print(" ")
+print("Detail Aktivasi Aturan:")
+
+# Re-fuzzify inputs to get membership degrees for printing details
+mu_luas_print = {
+        'sedikit': triangle(user_luas, 25, 25, 50, 1, 0 ),
+        'sedang' : triangle(user_luas, 25, 50, 75, 0, 0),
+        'banyak' : triangle(user_luas, 50, 75, 100, 0, 1)
+}
+
+mu_daya_print = {
+        'kecil'   : triangle(user_daya, 2, 2, 5, 1, 0),
+        'menengah': triangle(user_daya, 2, 5, 8, 0, 0),
+        'besar'   : triangle(user_daya, 5, 8, 10, 0, 1)
+}
+\end{lstlisting}
+
+
+
+\end{document}
